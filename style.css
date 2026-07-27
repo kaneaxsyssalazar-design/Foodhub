@@ -1,0 +1,70 @@
+/* ==========================================================================
+   STRICT 3-COLUMN GRID & LINK FIX
+   ========================================================================== */
+
+/* 1. Force strict 3-column container */
+.card-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 20px !important;
+  margin-top: 15px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 2. FORCE anchor tag to act as a proper block container cell */
+a.card-link {
+  display: block !important;
+  text-decoration: none !important;
+  color: inherit !important;
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 3. Card Container alignment */
+.dish-card, .api-card {
+  background-color: #ffffff !important;
+  border: 1px solid #e1e8ed !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 4. Lock image sizing strictly */
+.dish-card img, .api-card img {
+  width: 100% !important;
+  height: 180px !important;
+  object-fit: cover !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+}
+
+.dish-card-content {
+  padding: 15px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: 1 !important;
+  justify-content: space-between !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 580px) {
+  .card-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
