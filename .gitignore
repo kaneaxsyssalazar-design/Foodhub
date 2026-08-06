@@ -1,0 +1,17 @@
+# Sensitive config
+db_connect.php
+.env
+config.php
+
+# Logs
+*.log
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Dependencies
+vendor/
+node_modules/
