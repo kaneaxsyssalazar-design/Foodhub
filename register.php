@@ -6,29 +6,31 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
+    $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
-    if (empty($username) || empty($password)) {
+    if (empty($email) || empty($password) || empty($confirm_password)) {
         $error = 'All fields are required.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Please enter a valid email address.';
     } elseif ($password !== $confirm_password) {
         $error = 'Passwords do not match.';
     } else {
-        // Check if username already exists
-        $stmt = $db->prepare('SELECT id FROM users WHERE username = :username');
-        $stmt->execute([':username' => $username]);
+        // Check if email already exists
+        $stmt = $db->prepare('SELECT id FROM users WHERE email = :email');
+        $stmt->execute([':email' => $email]);
         
         if ($stmt->fetch()) {
-            $error = 'Username is already taken.';
+            $error = 'An account with this email already exists.';
         } else {
             // Securely hash the password
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            // Clean INSERT query allowing standard users to register
-            $insert_stmt = $db->prepare('INSERT INTO users (username, password) VALUES (:username, :password)');
+            // Insert new user with email and hashed password
+            $insert_stmt = $db->prepare('INSERT INTO users (email, password) VALUES (:email, :password)');
             $insert_stmt->execute([
-                ':username' => $username,
+                ':email' => $email,
                 ':password' => $hashed_password
             ]);
 
@@ -49,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .auth-card { max-width: 400px; margin: 80px auto; padding: 30px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .form-group { margin-bottom: 16px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        input[type="email"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
         .btn-submit { width: 100%; background: #0284c7; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-submit:hover { background: #0369a1; }
         .alert-error { color: #dc2626; font-weight: bold; margin-bottom: 15px; }
@@ -66,8 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form method="POST" action="register.php">
             <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
