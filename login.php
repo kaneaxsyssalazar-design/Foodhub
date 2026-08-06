@@ -5,26 +5,31 @@ require_once 'db_connect.php';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
+    $login_input = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    if (empty($username) || empty($password)) {
-        $error = 'Please enter both username and password.';
+    if (empty($login_input) || empty($password)) {
+        $error = 'Please enter both username/email and password.';
     } else {
-        $stmt = $db->prepare('SELECT * FROM users WHERE username = :username');
-        $stmt->execute([':username' => $username]);
+        // Unique placeholders (:username and :email) resolve PDO HY093
+        $stmt = $db->prepare('SELECT * FROM users WHERE username = :username OR email = :email LIMIT 1');
+        $stmt->execute([
+            ':username' => $login_input,
+            ':email'    => $login_input
+        ]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Verify password hash
+        // Verify password hash against database record
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['is_admin'] = $user['is_admin'];
 
-            header('Location: index.php');
+            // Redirect with a success flag
+            header('Location: index.php?login=success');
             exit;
         } else {
-            $error = 'Invalid username or password.';
+            $error = 'Invalid username/email or password.';
         }
     }
 }
@@ -62,8 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form method="POST" action="login.php">
             <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+                <label for="username">Username or Email</label>
+                <input type="text" id="username" name="username" placeholder="Enter username or email" value="<?= htmlspecialchars($_POST['username'] ?? '') ?>" required>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
