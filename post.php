@@ -126,6 +126,8 @@ $comments = $comment_stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($post['title']) ?> - Food Hub</title>
     <link rel="stylesheet" href="style.css?v=99">
+    <!-- Lightbox2 CSS for Image Zooming Overlay -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css">
     <style>
         body {
             background-color: #121212;
@@ -150,6 +152,10 @@ $comments = $comment_stmt->fetchAll(PDO::FETCH_ASSOC);
             text-decoration: none;
             margin-left: 12px;
             font-weight: bold;
+        }
+
+        header a:hover {
+            text-decoration: underline;
         }
 
         .container {
@@ -180,13 +186,25 @@ $comments = $comment_stmt->fetchAll(PDO::FETCH_ASSOC);
             margin-bottom: 15px;
         }
 
+        .image-wrapper {
+            display: block;
+            margin: 20px 0;
+            cursor: zoom-in;
+            position: relative;
+        }
+
         .post-image {
             width: 100%;
             max-height: 450px;
             object-fit: cover;
             border-radius: 8px;
-            margin: 20px 0;
             border: 1px solid #27272a;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .image-wrapper:hover .post-image {
+            opacity: 0.9;
+            transform: scale(1.005);
         }
 
         .badge-container {
@@ -423,8 +441,11 @@ $comments = $comment_stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php endif; ?>
         </div>
 
+        <!-- LIGHTVIEW / LIGHTBOX IMAGE ZOOM -->
         <?php if (!empty($post['image_path']) && file_exists($post['image_path'])): ?>
-            <img src="<?= htmlspecialchars($post['image_path']) ?>" alt="<?= htmlspecialchars($post['title']) ?>" class="post-image"><br>
+            <a href="<?= htmlspecialchars($post['image_path']) ?>" data-lightbox="dish-image" data-title="<?= htmlspecialchars($post['title']) ?>" class="image-wrapper">
+                <img src="<?= htmlspecialchars($post['image_path']) ?>" alt="<?= htmlspecialchars($post['title']) ?>" class="post-image">
+            </a>
         <?php endif; ?>
 
         <div class="post-body">
@@ -502,5 +523,7 @@ $comments = $comment_stmt->fetchAll(PDO::FETCH_ASSOC);
         </form>
     </div>
 
+    <!-- Lightbox2 JavaScript for Lightview Image Overlay -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox-plus-jquery.min.js"></script>
 </body>
 </html>
