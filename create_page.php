@@ -30,12 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Retrieve formatted HTML content directly from TinyMCE
     $content = trim($_POST['content'] ?? '');
 
-    // 1. Validate Text Inputs
+    // 1. Validate Required Text Inputs
     if (empty($title) || empty($country_of_origin) || empty($content) || !$category_id) {
-        $error = 'All fields (Title, Origin, Category, and Content) are required.';
+        $error = 'All text fields (Title, Origin, Category, and Content) are required.';
     } 
 
-    // 2. Process Image Upload if Text Inputs are Valid
+    // 2. Process Image Upload ONLY IF an image file was provided (Requirement 6.1: Images are optional)
     $image_path = null;
     
     if (empty($error) && isset($_FILES['food_image']) && $_FILES['food_image']['error'] === UPLOAD_ERR_OK) {
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $allowed_exts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         $allowed_mimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
-        // MIME Type verification for enhanced security
+        // Strict "Image-ness" Test via MIME Type inspection
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime_type = finfo_file($finfo, $file_tmp);
         finfo_close($finfo);
@@ -63,13 +63,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (move_uploaded_file($file_tmp, $target_file)) {
                 $image_path = $target_file;
             } else {
-                $error = 'Failed to save food image.';
+                $error = 'Failed to move uploaded image to storage folder.';
             }
         } else {
-            $error = 'Invalid image type. Allowed formats: JPG, JPEG, PNG, GIF, WEBP.';
+            // Gracefully reject files that fail "image-ness" test
+            $error = 'Invalid file uploaded. Please select a valid image format (JPG, PNG, GIF, WEBP).';
         }
-    } elseif (empty($error) && (!isset($_FILES['food_image']) || $_FILES['food_image']['error'] !== UPLOAD_ERR_OK)) {
-        $error = 'Please select a valid image file to upload.';
+    } elseif (isset($_FILES['food_image']) && $_FILES['food_image']['error'] !== UPLOAD_ERR_NO_FILE && $_FILES['food_image']['error'] !== UPLOAD_ERR_OK) {
+        // Catch upload errors other than "no file chosen"
+        $error = 'An error occurred while uploading your file. Please try again.';
     }
 
     // 3. Save to Database with user_id ownership & Redirect
@@ -83,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':title'        => $title,
             ':country'      => $country_of_origin,
             ':category_id'  => $category_id,
-            ':image_path'   => $image_path,
+            ':image_path'   => $image_path, // Stores NULL if no image was uploaded
             ':content'      => $content,
             ':user_id'      => $_SESSION['user_id']
         ]);
@@ -199,6 +201,12 @@ $categories = $category_stmt->fetchAll(PDO::FETCH_ASSOC);
             border-radius: 6px;
         }
 
+        .optional-tag {
+            color: #a1a1aa;
+            font-weight: normal;
+            font-size: 0.85rem;
+        }
+
         .btn-submit {
             background: #0284c7;
             color: #ffffff;
@@ -300,10 +308,11 @@ $categories = $category_stmt->fetchAll(PDO::FETCH_ASSOC);
                 </select>
             </div>
 
+            <!-- Optional Image Upload Input -->
             <div class="form-group">
-                <label for="food_image">Food Photo:</label>
+                <label for="food_image">Food Photo: <span class="optional-tag">(Optional)</span></label>
                 <div class="file-input-box">
-                    <input type="file" id="food_image" name="food_image" accept="image/*" required style="color: #e4e4e7;">
+                    <input type="file" id="food_image" name="food_image" accept="image/*" style="color: #e4e4e7;">
                 </div>
             </div>
 
